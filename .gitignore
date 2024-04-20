@@ -48,3 +48,6 @@
 *.exe
 *.idb
 
+*.recipe
+*.db
+/LearnOpenGl/.vs
