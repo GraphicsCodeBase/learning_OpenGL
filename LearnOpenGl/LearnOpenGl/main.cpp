@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 	glutInitWindowPosition(x,y);
 	int win = glutCreateWindow("first opengl Window.");
 	printf("window id: %d\n", win);
-	GLclampf red = 1.0f, blue = 0.5f, green = 0.0f,alpha = 0.0f;
+	GLclampf red = 1.0f, blue = 0.0f, green = 0.0f,alpha = 0.0f;
 	glClearColor(red, green, blue,alpha);
 
 	//register a render callback function.
@@ -36,3 +36,6 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+//understanding beginners to opengl will have to go through alot of stages in order to print a simple primitive to the screen
+//since opengl is composed of a pipeline of stages.where each stage will have its own prep.
