@@ -8,10 +8,13 @@ GLuint VBO;
 
 static void CreateVertexBuffer()
 {
-	//first create an array
-	Vector3f Verticies[1];
-	//init a single vector with all components init to 0.0f
-	Verticies[0] = Vector3f(0.0f, 0.0f, 0.0f);
+	//first create an array now size of 3.
+	Vector3f Verticies[3];
+	//init a single vector with all components init to 0.0
+	//defining the triangle's verticies in its own grid.
+	Verticies[0] = Vector3f(-1.0f, -1.0f, 0.0f);	//bottom left
+	Verticies[1] = Vector3f(0.0f, 1.0f, 0.0f);		// top
+	Verticies[2] = Vector3f(1.0f, -1.0f, 0.0f);		//bttom right 
 	//creating a handle for the vertex buffer.
 	glGenBuffers(1, &VBO);//two params , number of handles we want to allocate , array of gluint elements that wiull be big enough to contain the number of handles.
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -30,7 +33,10 @@ static void RenderSceneCB()
 	glEnableVertexAttribArray(0);
 	// we specify the format of the vertex attrib.
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glDrawArrays(GL_POINTS, 0, 1);
+
+	//telling the gpu that it must create a triangle for every 3 consecutive coords. 
+	//from the bound vertex buffer object.
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glDisableVertexAttribArray(0);
 	glutSwapBuffers();
 }
