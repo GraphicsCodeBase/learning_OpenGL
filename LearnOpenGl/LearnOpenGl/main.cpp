@@ -1,13 +1,21 @@
 #include <stdio.h>
 #include <glew.h>
 #include <glut.h>
-
+#include <ogldev_math_3d.h>
 
 static void RenderSceneCB()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glutSwapBuffers();//swapping the front and back buffers.
 }
+
+static void CreateVertexBuffer()
+{
+	//first create an array
+	Vector3f Verticies[1];
+
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -26,12 +34,27 @@ int main(int argc, char* argv[])
 	glutInitWindowPosition(x,y);
 	int win = glutCreateWindow("first opengl Window.");
 	printf("window id: %d\n", win);
+
+	//initalising glew
+	//doing error checking if glew isnt inialised!
+	//since we also need the opengl context that glut creates.
+	GLenum res = glewInit();
+	if (res != GLEW_OK)
+	{
+		fprintf(stderr, "Error: '%s' \n", glewGetErrorString(res));
+		return 1;
+	}
+
 	GLclampf red = 1.0f, blue = 0.0f, green = 0.0f,alpha = 0.0f;
 	glClearColor(red, green, blue,alpha);
 
+	CreateVertexBuffer();
+	
 	//register a render callback function.
 	//main entrypoint of the application.
 	glutDisplayFunc(RenderSceneCB);
+
+
 	glutMainLoop();
 
 	return 0;
