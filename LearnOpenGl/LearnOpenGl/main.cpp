@@ -1,21 +1,39 @@
 #include <stdio.h>
 #include <glew.h>
-#include <glut.h>
+#include <freeglut.h>
 #include <ogldev_math_3d.h>
 
-static void RenderSceneCB()
-{
-	glClear(GL_COLOR_BUFFER_BIT);
-	glutSwapBuffers();//swapping the front and back buffers.
-}
+GLuint VBO;
+
 
 static void CreateVertexBuffer()
 {
 	//first create an array
 	Vector3f Verticies[1];
-
+	//init a single vector with all components init to 0.0f
+	Verticies[0] = Vector3f(0.0f, 0.0f, 0.0f);
+	//creating a handle for the vertex buffer.
+	glGenBuffers(1, &VBO);//two params , number of handles we want to allocate , array of gluint elements that wiull be big enough to contain the number of handles.
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Verticies), Verticies, GL_STATIC_DRAW); 
 }
-
+//this is the render callback function.
+static void RenderSceneCB()
+{
+	//clear window color
+	glClear(GL_COLOR_BUFFER_BIT);
+	//bind the buffer object to the vertex
+	//since there might be multiple handles its safer to bound the last handle before using it.
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//enable vertex attrib zero. vertex attributes can be texture coords , positions.
+	//think of it as a gate in order for the data to flow in.
+	glEnableVertexAttribArray(0);
+	// we specify the format of the vertex attrib.
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glDrawArrays(GL_POINTS, 0, 1);
+	glDisableVertexAttribArray(0);
+	glutSwapBuffers();
+}
 
 int main(int argc, char* argv[])
 {
@@ -45,7 +63,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	GLclampf red = 1.0f, blue = 0.0f, green = 0.0f,alpha = 0.0f;
+	GLclampf red = 0.0f, blue = 0.0f, green = 0.0f,alpha = 0.0f;
 	glClearColor(red, green, blue,alpha);
 
 	CreateVertexBuffer();
