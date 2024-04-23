@@ -131,6 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ogldev_util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ogldev_types.h" />

@@ -3,8 +3,23 @@
 #include <freeglut.h>
 #include <ogldev_math_3d.h>
 
-GLuint VBO;
 
+GLuint VBO;
+const char* VsFileName = "shader.vs";
+const char* FsFileName = "Shader.fs";
+
+
+static void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
+{
+	GLuint ShaderObj = glCreateShader(ShaderType);
+	//create a error checking.
+	if (ShaderObj == 0)
+	{
+		fprintf(stderr, "Error creating shader type %d\n", ShaderType);
+		exit(0);
+	}
+	const GLchar* p[1];
+}
 
 static void CreateVertexBuffer()
 {
@@ -41,6 +56,29 @@ static void RenderSceneCB()
 	glutSwapBuffers();
 }
 
+
+static void CompileShaders()
+{
+	//cllocate the handle for the program.
+	GLuint ShaderProgram = glCreateProgram();
+	//error checking for creating the shader.
+	//making sure we are getting a non zero handle.
+	if (ShaderProgram == 0)
+	{
+		fprintf(stderr, "Error Creating Shader program\n");
+		exit(1);
+	}
+	//vs for vertex shader and fs for fragment shader.
+	std::string vs, fs;
+	if (!ReadFile(VsFileName,vs))
+	{
+		exit(1);
+	}
+	AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+}
+
+
+
 int main(int argc, char* argv[])
 {
 	
@@ -74,6 +112,8 @@ int main(int argc, char* argv[])
 
 	CreateVertexBuffer();
 	
+	CompileShaders();
+
 	//register a render callback function.
 	//main entrypoint of the application.
 	glutDisplayFunc(RenderSceneCB);
