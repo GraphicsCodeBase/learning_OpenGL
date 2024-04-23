@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 	}
 
 	GLclampf red = 0.0f, blue = 0.0f, green = 0.0f,alpha = 0.0f;
-	glClearColor(red, green, blue,alpha);
+	glClearColor(red, green, blue,alpha); 
 
 	CreateVertexBuffer();
 	
