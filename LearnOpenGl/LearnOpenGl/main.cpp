@@ -70,18 +70,18 @@ static void CreateVertexBuffer()
 static void RenderSceneCB()
 {
 	static float Scale = 0.0f;
-	static float Delta = 0.005f;
+	static float Delta = 0.01f;
 
 	Scale += Delta;
-	if ((Scale >= 1.0f) || (Scale <= -1.0f))
+	if ((Scale >= 1.5708f) || (Scale <= -1.5708f))
 	{
 		Delta *= -1.0f;
 	}
 	//adding the translation matrix.
-	Matrix4f Translation(1.0f, 0.0f, 0.0f, Scale * 2,
-							0.0f, 1.0f, 0.0f, Scale,
-							0.0f, 0.0f, 1.0f, 0.0,
-							0.0f, 0.0f, 0.0f, 1.0f);
+	Matrix4f Translation(cosf(Scale), -sinf(Scale), 0.0f, 0.0f,
+							sinf(Scale), cosf(Scale), 0.0f, 0.0f,
+							0.0f,		0.0f,		1.0f, 0.0f,
+							0.0f,		0.0f,		0.0f, 1.0f);
 	//sending the value of the scale to the shader.
 	//params : gScaleLocation(index location), scale(value to pass into the index.)
 	//glUniform1f(gScaleLocation, Scale);
