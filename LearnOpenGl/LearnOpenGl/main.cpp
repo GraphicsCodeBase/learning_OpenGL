@@ -5,7 +5,7 @@
 
 
 GLuint VBO;
-GLuint gScaleLocation;
+GLuint gTranslationLocation;
 const char* VsFileName = "shader.vs";
 const char* FsFileName = "Shader.fs";
 
@@ -64,7 +64,7 @@ static void CreateVertexBuffer()
 	//creating a handle for the vertex buffer.
 	glGenBuffers(1, &VBO);//two params , number of handles we want to allocate , array of gluint elements that wiull be big enough to contain the number of handles.
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Verticies), Verticies, GL_STATIC_DRAW); 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Verticies), Verticies, GL_STATIC_DRAW);
 }
 //this is the render callback function.
 static void RenderSceneCB()
@@ -77,11 +77,15 @@ static void RenderSceneCB()
 	{
 		Delta *= -1.0f;
 	}
-
+	//adding the translation matrix.
+	Matrix4f Translation(1.0f, 0.0f, 0.0f, Scale * 2,
+							0.0f, 1.0f, 0.0f, Scale,
+							0.0f, 0.0f, 1.0f, 0.0,
+							0.0f, 0.0f, 0.0f, 1.0f);
 	//sending the value of the scale to the shader.
 	//params : gScaleLocation(index location), scale(value to pass into the index.)
-	glUniform1f(gScaleLocation, Scale);
-
+	//glUniform1f(gScaleLocation, Scale);
+	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &Translation.m[0][0]);
 	//clear window color
 	glClear(GL_COLOR_BUFFER_BIT);
 	//bind the buffer object to the vertex
@@ -116,7 +120,7 @@ static void CompileShaders()
 	//vs for vertex shader and fs for fragment shader.
 	std::string vs, fs;
 	//read from shader txt file. and throw into the string vs.
-	if (!ReadFile(VsFileName,vs))
+	if (!ReadFile(VsFileName, vs))
 	{
 		exit(1);// if file not found throw an error.
 	}
@@ -132,7 +136,7 @@ static void CompileShaders()
 	AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
 
 	GLint Success = 0;
-	GLchar ErrorLog[1024] = {0};
+	GLchar ErrorLog[1024] = { 0 };
 
 	//link the program and link the program with the program handle as the prarm.
 	glLinkProgram(ShaderProgram);
@@ -142,7 +146,7 @@ static void CompileShaders()
 	if (Success == 0)
 	{
 		glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
-		fprintf(stderr, "Error Linking Shader program: '%s' \n",ErrorLog);
+		fprintf(stderr, "Error Linking Shader program: '%s' \n", ErrorLog);
 		exit(1);
 	}
 
@@ -150,9 +154,9 @@ static void CompileShaders()
 	//make sure we assign the get uniform is after the linking of the program.
 	//make sure to query for the uniform location once for every unifiorm in the shader then store it somewhere.
 	//make sure that the uniform is being used or not the compiler will give error.
-	gScaleLocation = glGetUniformLocation(ShaderProgram, "gScale");
+	gTranslationLocation = glGetUniformLocation(ShaderProgram, "gTranslation");
 	//error checking for gScaleLocation.
-	if (gScaleLocation == -1)
+	if (gTranslationLocation == -1)
 	{
 		printf("Error getting uniformlocation. of 'gScale' \n ");
 		exit(1);
@@ -177,7 +181,7 @@ static void CompileShaders()
 
 int main(int argc, char* argv[])
 {
-	
+
 	glutInit(&argc, argv);
 	//GLUT RGBA -> set an RGBA mode
 	//setting the display mode to double buffering.
@@ -190,7 +194,7 @@ int main(int argc, char* argv[])
 
 	int x = 200;
 	int y = 100;
-	glutInitWindowPosition(x,y);
+	glutInitWindowPosition(x, y);
 	int win = glutCreateWindow("first opengl Window.");
 	printf("window id: %d\n", win);
 
@@ -204,11 +208,11 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	GLclampf red = 0.0f, blue = 0.0f, green = 0.0f,alpha = 0.0f;
-	glClearColor(red, green, blue,alpha); 
+	GLclampf red = 0.0f, blue = 0.0f, green = 0.0f, alpha = 0.0f;
+	glClearColor(red, green, blue, alpha);
 
 	CreateVertexBuffer();
-	
+
 	CompileShaders();
 
 	//register a render callback function.
