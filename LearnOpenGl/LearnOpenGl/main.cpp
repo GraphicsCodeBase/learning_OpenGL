@@ -11,14 +11,44 @@ const char* FsFileName = "Shader.fs";
 
 static void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
 {
+	//creating a shader handle.
 	GLuint ShaderObj = glCreateShader(ShaderType);
 	//create a error checking.
 	if (ShaderObj == 0)
 	{
 		fprintf(stderr, "Error creating shader type %d\n", ShaderType);
-		exit(0);
+		exit(1);
 	}
 	const GLchar* p[1];
+	p[0] = pShaderText;
+
+	GLint Lengths[1];
+	Lengths[0] = strlen(pShaderText);
+
+	//loading the shader txt into the shader handle.
+	//taking in 4 prarms: shader handle, pointers to an array of string pointers, and an array of lengths.
+	glShaderSource(ShaderObj, 1, p, Lengths);
+
+	//compiling shader. on the shader handle.
+	glCompileShader(ShaderObj);
+
+	GLint Success;
+	//this is needed to check shader issues and errors of the shaders.
+	glGetShaderiv(ShaderObj, GL_COMPILE_STATUS, &Success);
+
+	//error checking success or not
+	//log the info of the error. and an error msg
+	if (!Success)
+	{
+		GLchar InfoLog[1024];
+		//log the error info into the GLchar InfoLog.
+		glGetShaderInfoLog(ShaderObj, 1024, NULL, InfoLog);
+		//print error string , and exit the program.
+		fprintf(stderr, "Error Compiling shader type %d: %s '\n'", ShaderType, InfoLog);
+		exit(1);
+	}
+	//if no issues we can attatch the shaders, we would connect the shader handle to the shader program. 
+	glAttachShader(ShaderProgram, ShaderObj);
 }
 
 static void CreateVertexBuffer()
@@ -70,11 +100,49 @@ static void CompileShaders()
 	}
 	//vs for vertex shader and fs for fragment shader.
 	std::string vs, fs;
+	//read from shader txt file. and throw into the string vs.
 	if (!ReadFile(VsFileName,vs))
 	{
+		exit(1);// if file not found throw an error.
+	}
+	//the string::vs will have the entire contents of the shader.
+	//this function will take in the program handle, the contents of the shader, and fineally enum to indicate the type of the shader.
+	AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+
+	//error checking for fragment shader. before adding shader.
+	if (!ReadFile(FsFileName, fs))
+	{
+		exit(1);// if file not found throw an error.
+	}
+	AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
+
+	GLint Success = 0;
+	GLchar ErrorLog[1024] = {0};
+
+	//link the program and link the program with the program handle as the prarm.
+	glLinkProgram(ShaderProgram);
+
+	//making sure we check for link errors.
+	glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
+	if (Success == 0)
+	{
+		glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
+		fprintf(stderr, "Error Linking Shader program: '%s' \n",ErrorLog);
 		exit(1);
 	}
-	AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+	//make sure that the shader is compatible with the current state of the opengl runtime.
+	//sometimes that the current program that is linked wont be compatible with the current state.
+
+	glValidateProgram(ShaderProgram);//this function might provide hints on how to optimise the shader..
+	glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &Success);
+	if (!Success)
+	{
+		glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
+		fprintf(stderr, "Invalid Shader program: '%s' \n", ErrorLog);
+		exit(1);
+	}
+	//make sure that the program is active on the gpu.
+	glUseProgram(ShaderProgram);
 }
 
 

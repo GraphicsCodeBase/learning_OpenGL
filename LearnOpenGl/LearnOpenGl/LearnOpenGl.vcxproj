@@ -137,6 +137,10 @@
     <ClInclude Include="ogldev_types.h" />
     <ClInclude Include="ogldev_util.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shader.fs" />
+    <None Include="shader.vs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
