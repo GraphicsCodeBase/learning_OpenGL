@@ -5,6 +5,7 @@
 
 
 GLuint VBO;
+GLuint gScaleLocation;
 const char* VsFileName = "shader.vs";
 const char* FsFileName = "Shader.fs";
 
@@ -68,6 +69,19 @@ static void CreateVertexBuffer()
 //this is the render callback function.
 static void RenderSceneCB()
 {
+	static float Scale = 0.0f;
+	static float Delta = 0.005f;
+
+	Scale += Delta;
+	if ((Scale >= 1.0f) || (Scale <= -1.0f))
+	{
+		Delta *= -1.0f;
+	}
+
+	//sending the value of the scale to the shader.
+	//params : gScaleLocation(index location), scale(value to pass into the index.)
+	glUniform1f(gScaleLocation, Scale);
+
 	//clear window color
 	glClear(GL_COLOR_BUFFER_BIT);
 	//bind the buffer object to the vertex
@@ -83,6 +97,7 @@ static void RenderSceneCB()
 	//from the bound vertex buffer object.
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glDisableVertexAttribArray(0);
+	glutPostRedisplay();//tells glut to continously call the render call back over and over again.
 	glutSwapBuffers();
 }
 
@@ -130,6 +145,19 @@ static void CompileShaders()
 		fprintf(stderr, "Error Linking Shader program: '%s' \n",ErrorLog);
 		exit(1);
 	}
+
+	//we assign the uniform location into a GLuint program.
+	//make sure we assign the get uniform is after the linking of the program.
+	//make sure to query for the uniform location once for every unifiorm in the shader then store it somewhere.
+	//make sure that the uniform is being used or not the compiler will give error.
+	gScaleLocation = glGetUniformLocation(ShaderProgram, "gScale");
+	//error checking for gScaleLocation.
+	if (gScaleLocation == -1)
+	{
+		printf("Error getting uniformlocation. of 'gScale' \n ");
+		exit(1);
+	}
+
 	//make sure that the shader is compatible with the current state of the opengl runtime.
 	//sometimes that the current program that is linked wont be compatible with the current state.
 
@@ -156,9 +184,10 @@ int main(int argc, char* argv[])
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
 	//window configuration.
-	int width = 1920;
-	int height = 1080;
-	glutInitWindowPosition(width, height);
+	int width = 800;
+	int height = 600;
+	glutInitWindowSize(width, height);
+
 	int x = 200;
 	int y = 100;
 	glutInitWindowPosition(x,y);
