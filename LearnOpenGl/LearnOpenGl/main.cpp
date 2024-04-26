@@ -5,7 +5,7 @@
 
 
 GLuint VBO;
-GLuint gTranslationLocation;
+GLuint gScalingLocation;
 const char* VsFileName = "shader.vs";
 const char* FsFileName = "Shader.fs";
 
@@ -77,20 +77,12 @@ static void RenderSceneCB()
 	{
 		Delta *= -1.0f;
 	}
-	//adding the translation matrix.
-	//Matrix4f Translation(cosf(Scale), -sinf(Scale), 0.0f, 0.0f,
-	//	sinf(Scale), cosf(Scale), 0.0f, 0.0f,
-	//	0.0f, 0.0f, 1.0f, 0.0f,
-	//	0.0f, 0.0f, 0.0f, 1.0f);
-	//sending the value of the scale to the shader.
-	//params : gScaleLocation(index location), scale(value to pass into the index.)
-	//glUniform1f(gScaleLocation, Scale);
 	
 	Matrix4f Translation(Scale, 0.0f, 0.0f, 0.0f,
 						0.0f, Scale, 0.0f, 0.0f,
 						0.0f, 0.0f, Scale, 0.0f,
 						0.0f, 0.0f, 0.0f, 1.0f);
-	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &Translation.m[0][0]);
+	glUniformMatrix4fv(gScalingLocation, 1, GL_TRUE, &Translation.m[0][0]);
 
 
 	//clear window color
@@ -162,9 +154,9 @@ static void CompileShaders()
 	//make sure we assign the get uniform is after the linking of the program.
 	//make sure to query for the uniform location once for every unifiorm in the shader then store it somewhere.
 	//make sure that the uniform is being used or not the compiler will give error.
-	gTranslationLocation = glGetUniformLocation(ShaderProgram, "gScaling");
+	gScalingLocation = glGetUniformLocation(ShaderProgram, "gScaling");
 	//error checking for gScaleLocation.
-	if (gTranslationLocation == -1)
+	if (gScalingLocation == -1)
 	{
 		printf("Error getting uniformlocation. of 'gScale' \n ");
 		exit(1);
