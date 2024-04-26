@@ -69,23 +69,30 @@ static void CreateVertexBuffer()
 //this is the render callback function.
 static void RenderSceneCB()
 {
-	static float Scale = 0.0f;
+	static float Scale = 1.0f;
 	static float Delta = 0.01f;
 
 	Scale += Delta;
-	if ((Scale >= 1.5708f) || (Scale <= -1.5708f))
+	if ((Scale >= 1.5f) || (Scale <= 0.5))
 	{
 		Delta *= -1.0f;
 	}
 	//adding the translation matrix.
-	Matrix4f Translation(cosf(Scale), -sinf(Scale), 0.0f, 0.0f,
-							sinf(Scale), cosf(Scale), 0.0f, 0.0f,
-							0.0f,		0.0f,		1.0f, 0.0f,
-							0.0f,		0.0f,		0.0f, 1.0f);
+	//Matrix4f Translation(cosf(Scale), -sinf(Scale), 0.0f, 0.0f,
+	//	sinf(Scale), cosf(Scale), 0.0f, 0.0f,
+	//	0.0f, 0.0f, 1.0f, 0.0f,
+	//	0.0f, 0.0f, 0.0f, 1.0f);
 	//sending the value of the scale to the shader.
 	//params : gScaleLocation(index location), scale(value to pass into the index.)
 	//glUniform1f(gScaleLocation, Scale);
+	
+	Matrix4f Translation(Scale, 0.0f, 0.0f, 0.0f,
+						0.0f, Scale, 0.0f, 0.0f,
+						0.0f, 0.0f, Scale, 0.0f,
+						0.0f, 0.0f, 0.0f, 1.0f);
 	glUniformMatrix4fv(gTranslationLocation, 1, GL_TRUE, &Translation.m[0][0]);
+
+
 	//clear window color
 	glClear(GL_COLOR_BUFFER_BIT);
 	//bind the buffer object to the vertex
@@ -103,6 +110,7 @@ static void RenderSceneCB()
 	glDisableVertexAttribArray(0);
 	glutPostRedisplay();//tells glut to continously call the render call back over and over again.
 	glutSwapBuffers();
+
 }
 
 
