@@ -70,7 +70,7 @@ static void CreateVertexBuffer()
 static void RenderSceneCB()
 {
 	static float Scale = 1.0f;
-	static float Delta = 0.01f;
+	static float Delta = 0.001f;
 
 	Scale += Delta;
 	if ((Scale >= 1.5f) || (Scale <= 0.5))
@@ -162,7 +162,7 @@ static void CompileShaders()
 	//make sure we assign the get uniform is after the linking of the program.
 	//make sure to query for the uniform location once for every unifiorm in the shader then store it somewhere.
 	//make sure that the uniform is being used or not the compiler will give error.
-	gTranslationLocation = glGetUniformLocation(ShaderProgram, "gTranslation");
+	gTranslationLocation = glGetUniformLocation(ShaderProgram, "gScaling");
 	//error checking for gScaleLocation.
 	if (gTranslationLocation == -1)
 	{
