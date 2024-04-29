@@ -2,12 +2,100 @@
 #include <glew.h>
 #include <freeglut.h>
 #include <ogldev_math_3d.h>
-
+#include <stdlib.h>
 
 GLuint VBO;
-GLuint gScalingLocation;
+GLuint IBO;
+GLuint gWorldLocation;
 const char* VsFileName = "shader.vs";
 const char* FsFileName = "Shader.fs";
+
+//adding a vertex struct
+struct Vertex
+{
+	Vector3f pos;
+	Vector3f color;
+	//constructor.
+	Vertex() {};
+	//populate color and position into the struct.
+	Vertex(float x, float y)
+	{	
+		//init the position.
+		pos = Vector3f(x,y,0.0f);
+		float red =		rand() / (float)RAND_MAX;
+		float green =	rand() / (float)RAND_MAX;
+		float blue =	rand() / (float)RAND_MAX;
+		color = Vector3f(red, green, blue);
+	}
+};
+static void createVertexBuffer()
+{
+	Vertex Vertices[19];
+
+	// Center
+	Vertices[0] = Vertex(0.0f, 0.0);
+
+	// Top row
+	//we start on the top left then we are going to move in steps in 0.25 to the right.
+	Vertices[1] = Vertex(-1.0f, 1.0f);
+	Vertices[2] = Vertex(-0.75f, 1.0f);
+	Vertices[3] = Vertex(-0.50f, 1.0f);
+	Vertices[4] = Vertex(-0.25f, 1.0f);
+	Vertices[5] = Vertex(-0.0f, 1.0f);
+	Vertices[6] = Vertex(0.25f, 1.0f);
+	Vertices[7] = Vertex(0.50f, 1.0f);
+	Vertices[8] = Vertex(0.75f, 1.0f);
+	Vertices[9] = Vertex(1.0f, 1.0f);
+
+	// Bottom row
+	//we do the same for the bottom row. but instead the value is -1.
+	Vertices[10] = Vertex(-1.0f, -1.0f);
+	Vertices[11] = Vertex(-0.75f, -1.0f);
+	Vertices[12] = Vertex(-0.50f, -1.0f);
+	Vertices[13] = Vertex(-0.25f, -1.0f);
+	Vertices[14] = Vertex(-0.0f, -1.0f);
+	Vertices[15] = Vertex(0.25f, -1.0f);
+	Vertices[16] = Vertex(0.50f, -1.0f);
+	Vertices[17] = Vertex(0.75f, -1.0f);
+	Vertices[18] = Vertex(1.0f, -1.0f);
+
+	glGenBuffers(1, &VBO);//create the buffer handle.
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);//bind the buffer.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+}
+static void createIndexBuffer()
+{
+	unsigned int Indices[] = { // Top triangles
+							   0, 2, 1,
+							   0, 3, 2,
+							   0, 4, 3,
+							   0, 5, 4,
+							   0, 6, 5,
+							   0, 7, 6,
+							   0, 8, 7,
+							   0, 9, 8,
+
+							   // Bottom triangles
+							   0, 10, 11,
+							   0, 11, 12,
+							   0, 12, 13,
+							   0, 13, 14,
+							   0, 14, 15,
+							   0, 15, 16,
+							   0, 16, 17,
+							   0, 17, 18,
+
+							   // Left triangle
+							   0, 1, 10,
+
+							   // Right triangle
+							   0, 18, 9 };
+
+	//creating the index buffer.
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);//we are binding the index buffer.(GL_ELEMENT_ARRAY_BUFFER) is your index buffer.
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
+}
 
 
 static void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -69,38 +157,39 @@ static void CreateVertexBuffer()
 //this is the render callback function.
 static void RenderSceneCB()
 {
-	static float Scale = 1.0f;
-	static float Delta = 0.001f;
-
-	Scale += Delta;
-	if ((Scale >= 1.5f) || (Scale <= 0.5))
-	{
-		Delta *= -1.0f;
-	}
-	
-	Matrix4f Translation(Scale, 0.0f, 0.0f, 0.0f,
-						0.0f, Scale, 0.0f, 0.0f,
-						0.0f, 0.0f, Scale, 0.0f,
-						0.0f, 0.0f, 0.0f, 1.0f);
-	glUniformMatrix4fv(gScalingLocation, 1, GL_TRUE, &Translation.m[0][0]);
-
-
-	//clear window color
 	glClear(GL_COLOR_BUFFER_BIT);
-	//bind the buffer object to the vertex
-	//since there might be multiple handles its safer to bound the last handle before using it.
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//enable vertex attrib zero. vertex attributes can be texture coords , positions.
-	//think of it as a gate in order for the data to flow in.
-	glEnableVertexAttribArray(0);
-	// we specify the format of the vertex attrib.
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	//telling the gpu that it must create a triangle for every 3 consecutive coords. 
-	//from the bound vertex buffer object.
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	static float Scale = 0.0f;
+
+	//    Scale += 0.01f;
+
+	Matrix4f World;
+
+	World.m[0][0] = cosf(Scale); World.m[0][1] = -sinf(Scale); World.m[0][2] = 0.0f; World.m[0][3] = 0.0f;
+	World.m[1][0] = sinf(Scale); World.m[1][1] = cosf(Scale); World.m[1][2] = 0.0f; World.m[1][3] = 0.0f;
+	World.m[2][0] = 0.0;         World.m[2][1] = 0.0f;         World.m[2][2] = 1.0f; World.m[2][3] = 0.0f;
+	World.m[3][0] = 0.0f;        World.m[3][1] = 0.0f;         World.m[3][2] = 0.0f; World.m[3][3] = 1.0f;
+
+	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &World.m[0][0]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
+	// position
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+
+	// color
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	glDrawElements(GL_TRIANGLES, 54, GL_UNSIGNED_INT, 0);
+
 	glDisableVertexAttribArray(0);
-	glutPostRedisplay();//tells glut to continously call the render call back over and over again.
+	glDisableVertexAttribArray(1);
+
+	glutPostRedisplay();
+
 	glutSwapBuffers();
 
 }
@@ -153,12 +242,12 @@ static void CompileShaders()
 	//we assign the uniform location into a GLuint program.
 	//make sure we assign the get uniform is after the linking of the program.
 	//make sure to query for the uniform location once for every unifiorm in the shader then store it somewhere.
-	//make sure that the uniform is being used or not the compiler will give error.
-	gScalingLocation = glGetUniformLocation(ShaderProgram, "gScaling");
+	//make sure that the uniform is being used or not the compiler will give error. 
+	gWorldLocation = glGetUniformLocation(ShaderProgram, "gWorld");
 	//error checking for gScaleLocation.
-	if (gScalingLocation == -1)
+	if (gWorldLocation == -1)
 	{
-		printf("Error getting uniformlocation. of 'gScale' \n ");
+		printf("Error getting uniformlocation. of 'gWorld' \n ");
 		exit(1);
 	}
 
@@ -181,6 +270,7 @@ static void CompileShaders()
 
 int main(int argc, char* argv[])
 {
+	srand(GetCurrentProcessId());
 
 	glutInit(&argc, argv);
 	//GLUT RGBA -> set an RGBA mode
@@ -211,7 +301,8 @@ int main(int argc, char* argv[])
 	GLclampf red = 0.0f, blue = 0.0f, green = 0.0f, alpha = 0.0f;
 	glClearColor(red, green, blue, alpha);
 
-	CreateVertexBuffer();
+	createVertexBuffer();
+	createIndexBuffer();
 
 	CompileShaders();
 
