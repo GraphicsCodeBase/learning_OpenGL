@@ -18,10 +18,10 @@ struct Vertex
 	//constructor.
 	Vertex() {};
 	//populate color and position into the struct.
-	Vertex(float x, float y)
+	Vertex(float x, float y,float z)
 	{	
-		//init the position.
-		pos = Vector3f(x,y,0.0f);
+		//init the position. using x,y,z
+		pos = Vector3f(x,y,z);
 		float red =		rand() / (float)RAND_MAX;
 		float green =	rand() / (float)RAND_MAX;
 		float blue =	rand() / (float)RAND_MAX;
@@ -30,34 +30,17 @@ struct Vertex
 };
 static void createVertexBuffer()
 {
-	Vertex Vertices[19];
-
-	// Center
-	Vertices[0] = Vertex(0.0f, 0.0);
-
-	// Top row
-	//we start on the top left then we are going to move in steps in 0.25 to the right.
-	Vertices[1] = Vertex(-1.0f, 1.0f);
-	Vertices[2] = Vertex(-0.75f, 1.0f);
-	Vertices[3] = Vertex(-0.50f, 1.0f);
-	Vertices[4] = Vertex(-0.25f, 1.0f);
-	Vertices[5] = Vertex(-0.0f, 1.0f);
-	Vertices[6] = Vertex(0.25f, 1.0f);
-	Vertices[7] = Vertex(0.50f, 1.0f);
-	Vertices[8] = Vertex(0.75f, 1.0f);
-	Vertices[9] = Vertex(1.0f, 1.0f);
-
-	// Bottom row
-	//we do the same for the bottom row. but instead the value is -1.
-	Vertices[10] = Vertex(-1.0f, -1.0f);
-	Vertices[11] = Vertex(-0.75f, -1.0f);
-	Vertices[12] = Vertex(-0.50f, -1.0f);
-	Vertices[13] = Vertex(-0.25f, -1.0f);
-	Vertices[14] = Vertex(-0.0f, -1.0f);
-	Vertices[15] = Vertex(0.25f, -1.0f);
-	Vertices[16] = Vertex(0.50f, -1.0f);
-	Vertices[17] = Vertex(0.75f, -1.0f);
-	Vertices[18] = Vertex(1.0f, -1.0f);
+	Vertex Vertices[8];
+	// we are rendering sa cube.
+	Vertices[0] = Vertex(0.5f, 0.5f, 0.5f);
+	Vertices[1] = Vertex(-0.5f, 0.5f, -0.5f);
+	Vertices[2] = Vertex(-0.5f, 0.5f, 0.5f);
+	Vertices[3] = Vertex(0.5f, -0.5f, -0.5f);
+	Vertices[4] = Vertex(-0.5f, -0.5f, -0.5f);
+	Vertices[5] = Vertex(0.5f, 0.5f, -0.5f);
+	Vertices[6] = Vertex(0.5f, -0.5f, 0.5f);
+	Vertices[7] = Vertex(-0.5f, -0.5f, 0.5f);
+	
 
 	glGenBuffers(1, &VBO);//create the buffer handle.
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);//bind the buffer.
@@ -65,31 +48,20 @@ static void createVertexBuffer()
 }
 static void createIndexBuffer()
 {
-	unsigned int Indices[] = { // Top triangles
-							   0, 2, 1,
-							   0, 3, 2,
-							   0, 4, 3,
-							   0, 5, 4,
-							   0, 6, 5,
-							   0, 7, 6,
-							   0, 8, 7,
-							   0, 9, 8,
-
-							   // Bottom triangles
-							   0, 10, 11,
-							   0, 11, 12,
-							   0, 12, 13,
-							   0, 13, 14,
-							   0, 14, 15,
-							   0, 15, 16,
-							   0, 16, 17,
-							   0, 17, 18,
-
-							   // Left triangle
-							   0, 1, 10,
-
-							   // Right triangle
-							   0, 18, 9 };
+	unsigned int Indices[] = {
+							  0, 1, 2,
+							  1, 3, 4,
+							  5, 6, 3,
+							  7, 3, 6,
+							  2, 4, 7,
+							  0, 7, 6,
+							  0, 5, 1,
+							  1, 5, 3,
+							  5, 0, 6,
+							  7, 4, 3,
+							  2, 1, 4,
+							  0, 2, 7
+	};
 
 	//creating the index buffer.
 	glGenBuffers(1, &IBO);
@@ -161,16 +133,34 @@ static void RenderSceneCB()
 
 	static float Scale = 0.0f;
 
-	//    Scale += 0.01f;
+	#ifdef _WIN64
+		Scale += 0.001f;
+	#else
+		Scale += 0.02f;
+	#endif
 
-	Matrix4f World;
+	//making the cube spin.
+	Matrix4f Rotation(cosf(Scale), 0.0f, -sinf(Scale), 0.0f,
+						0.0f, 1.0f, 0.0f, 0.0f,
+						sinf(Scale), 0.0f, cosf(Scale), 0.0f,
+						0.0f, 0.0f, 0.0f, 1.0f);
 
-	World.m[0][0] = cosf(Scale); World.m[0][1] = -sinf(Scale); World.m[0][2] = 0.0f; World.m[0][3] = 0.0f;
-	World.m[1][0] = sinf(Scale); World.m[1][1] = cosf(Scale); World.m[1][2] = 0.0f; World.m[1][3] = 0.0f;
-	World.m[2][0] = 0.0;         World.m[2][1] = 0.0f;         World.m[2][2] = 1.0f; World.m[2][3] = 0.0f;
-	World.m[3][0] = 0.0f;        World.m[3][1] = 0.0f;         World.m[3][2] = 0.0f; World.m[3][3] = 1.0f;
-
-	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &World.m[0][0]);
+	Matrix4f Translation(1.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, 1.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, 1.0f);
+	//projection matrix
+	float FOV = 90.0f;
+	float tanHalfFOV = tan(FOV / 2.0f);
+	float f = 1 / tanHalfFOV;
+	Matrix4f Projection(1.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, 1.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, 1.0f);
+	//calculating the final matrix.
+	Matrix4f FinalMatrix = Projection * Translation * Rotation;
+	//sending the matrix into the shader as a uniform.
+	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &FinalMatrix.m[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -183,7 +173,7 @@ static void RenderSceneCB()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
-	glDrawElements(GL_TRIANGLES, 54, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
@@ -300,6 +290,12 @@ int main(int argc, char* argv[])
 
 	GLclampf red = 0.0f, blue = 0.0f, green = 0.0f, alpha = 0.0f;
 	glClearColor(red, green, blue, alpha);
+
+	// we are enabling face culling
+	// making sure we are only rendering the exterior of the mesh and not everyting.
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW);//set the indicies to be clockwise direction.
+	glCullFace(GL_BACK);//tell opengl to cull the back facing triangles.
 
 	createVertexBuffer();
 	createIndexBuffer();
