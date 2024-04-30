@@ -31,7 +31,7 @@ struct Vertex
 static void createVertexBuffer()
 {
 	Vertex Vertices[8];
-	// we are rendering sa cube.
+	// we are rendering a cube.
 	Vertices[0] = Vertex(0.5f, 0.5f, 0.5f);
 	Vertices[1] = Vertex(-0.5f, 0.5f, -0.5f);
 	Vertices[2] = Vertex(-0.5f, 0.5f, 0.5f);
@@ -147,16 +147,17 @@ static void RenderSceneCB()
 
 	Matrix4f Translation(1.0f, 0.0f, 0.0f, 0.0f,
 						0.0f, 1.0f, 0.0f, 0.0f,
-						0.0f, 0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, 1.0f, 3.0f,
 						0.0f, 0.0f, 0.0f, 1.0f);
 	//projection matrix
 	float FOV = 90.0f;
-	float tanHalfFOV = tan(FOV / 2.0f);
-	float f = 1 / tanHalfFOV;
-	Matrix4f Projection(1.0f, 0.0f, 0.0f, 0.0f,
-						0.0f, 1.0f, 0.0f, 0.0f,
+	float tanHalfFOV = tanf(ToRadian(FOV / 2.0f));// make sure we change the degrees to radian.
+	float d = 1 / tanHalfFOV;//calculate the distance.
+	Matrix4f Projection(d, 0.0f, 0.0f, 0.0f,
+						0.0f, d, 0.0f, 0.0f,
 						0.0f, 0.0f, 1.0f, 0.0f,
-						0.0f, 0.0f, 0.0f, 1.0f);
+						0.0f, 0.0f, 1.0f, 0.0f);
+
 	//calculating the final matrix.
 	Matrix4f FinalMatrix = Projection * Translation * Rotation;
 	//sending the matrix into the shader as a uniform.
