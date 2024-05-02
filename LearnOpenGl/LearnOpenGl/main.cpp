@@ -3,6 +3,8 @@
 #include <freeglut.h>
 #include <ogldev_math_3d.h>
 #include <stdlib.h>
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
 
 GLuint VBO;
 GLuint IBO;
@@ -147,15 +149,24 @@ static void RenderSceneCB()
 
 	Matrix4f Translation(1.0f, 0.0f, 0.0f, 0.0f,
 						0.0f, 1.0f, 0.0f, 0.0f,
-						0.0f, 0.0f, 1.0f, 3.0f,
+						0.0f, 0.0f, 1.0f, 2.0f,
 						0.0f, 0.0f, 0.0f, 1.0f);
 	//projection matrix
 	float FOV = 90.0f;
 	float tanHalfFOV = tanf(ToRadian(FOV / 2.0f));// make sure we change the degrees to radian.
 	float d = 1 / tanHalfFOV;//calculate the distance.
-	Matrix4f Projection(d, 0.0f, 0.0f, 0.0f,
+
+	float ar = (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT;
+	float NearZ = 1.0f;
+	float FarZ = 10.0f;
+	float zRange = NearZ - FarZ;
+	float A = (-FarZ - NearZ) / zRange;
+	float B = 2.0f * FarZ * NearZ / zRange;
+
+
+	Matrix4f Projection(d/ar, 0.0f, 0.0f, 0.0f,
 						0.0f, d, 0.0f, 0.0f,
-						0.0f, 0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, A, B,
 						0.0f, 0.0f, 1.0f, 0.0f);
 
 	//calculating the final matrix.
@@ -269,8 +280,8 @@ int main(int argc, char* argv[])
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
 	//window configuration.
-	int width = 800;
-	int height = 600;
+	int width = WINDOW_WIDTH;
+	int height = WINDOW_HEIGHT;
 	glutInitWindowSize(width, height);
 
 	int x = 200;
