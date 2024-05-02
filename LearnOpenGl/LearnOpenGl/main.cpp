@@ -151,6 +151,20 @@ static void RenderSceneCB()
 						0.0f, 1.0f, 0.0f, 0.0f,
 						0.0f, 0.0f, 1.0f, 2.0f,
 						0.0f, 0.0f, 0.0f, 1.0f);
+
+	//world transformation matrix.
+	Matrix4f World = Translation * Rotation;
+	//camera position at the origin 
+	Vector3f CameraPos(0.0f, 0.0f, -1.0f);
+	Vector3f U(1.0f, 0.0f, 0.0f);
+	Vector3f V(0.0f, 1.0f, 0.0f);
+	Vector3f N(0.0f, 0.0f, 1.0f);
+	// camera matrix
+	Matrix4f Camera(U.x, U.y, U.z, -CameraPos.x,
+					V.x, V.y, V.z, -CameraPos.y,
+					N.x, N.y, N.z, -CameraPos.z,
+					0.0f, 0.0f, 0.0f, 1.0f);
+
 	//projection matrix
 	float FOV = 90.0f;
 	float tanHalfFOV = tanf(ToRadian(FOV / 2.0f));// make sure we change the degrees to radian.
@@ -169,10 +183,14 @@ static void RenderSceneCB()
 						0.0f, 0.0f, A, B,
 						0.0f, 0.0f, 1.0f, 0.0f);
 
+	//we create the WVP Matrix 
+	Matrix4f WVP = Projection * Camera * World;
+
+
 	//calculating the final matrix.
-	Matrix4f FinalMatrix = Projection * Translation * Rotation;
+	//Matrix4f FinalMatrix = Projection * Translation * Rotation;
 	//sending the matrix into the shader as a uniform.
-	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &FinalMatrix.m[0][0]);
+	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &WVP.m[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
