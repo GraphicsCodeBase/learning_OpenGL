@@ -43,7 +43,7 @@ bool ReadFile(const char* pFileName, string& outFile)
 
     bool ret = false;
 
-    if (f.is_open()) {
+    if (f.is_open()) { 
         string line;
         while (getline(f, line)) {
             outFile.append(line);

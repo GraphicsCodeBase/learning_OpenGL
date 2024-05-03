@@ -130,10 +130,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraClass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="math_3d.cpp" />
     <ClCompile Include="ogldev_util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraClass.h" />
     <ClInclude Include="ogldev_types.h" />
     <ClInclude Include="ogldev_util.h" />
   </ItemGroup>

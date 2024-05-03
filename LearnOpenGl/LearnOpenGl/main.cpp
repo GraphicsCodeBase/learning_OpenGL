@@ -3,12 +3,23 @@
 #include <freeglut.h>
 #include <ogldev_math_3d.h>
 #include <stdlib.h>
+#include "CameraClass.h"
+#include "Camera.h"
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
 GLuint VBO;
 GLuint IBO;
 GLuint gWorldLocation;
+WorldTrans CubeWorldTransform;//transform matrix object.
+Camera GameCamera;
+
+
+float FOV = 90.0f;
+float zNear = 1.0f;
+float zFar = 10.0f;
+PersProjInfo gPersProjInfo = {FOV,WINDOW_WIDTH,WINDOW_HEIGHT,zNear,zFar};
+
 const char* VsFileName = "shader.vs";
 const char* FsFileName = "Shader.fs";
 
@@ -133,84 +144,20 @@ static void RenderSceneCB()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	static float Scale = 0.0f;
+	float YRotationAngle = 1.0f;
 
-	#ifdef _WIN64
-		Scale += 0.001f;
-	#else
-		Scale += 0.02f;
-	#endif
+	//setting the cube position and rotation.
+	CubeWorldTransform.SetPosition(0.0f, 0.0f, 2.0f); 
+	CubeWorldTransform.Rotate(0.0f, YRotationAngle, 0.0f);//rotating the cube every call by one degree.
+	//get the world matrix.
+	Matrix4f World  =  CubeWorldTransform.GetMatrix();
 
-	//making the cube spin.
-	Matrix4f Rotation(cosf(Scale), 0.0f, -sinf(Scale), 0.0f,
-						0.0f, 1.0f, 0.0f, 0.0f,
-						sinf(Scale), 0.0f, cosf(Scale), 0.0f,
-						0.0f, 0.0f, 0.0f, 1.0f);
+	Matrix4f View = GameCamera.GetMatrix();
 
-	Matrix4f Translation(1.0f, 0.0f, 0.0f, 0.0f,
-						0.0f, 1.0f, 0.0f, 0.0f,
-						0.0f, 0.0f, 1.0f, 2.0f,
-						0.0f, 0.0f, 0.0f, 1.0f);
+	Matrix4f Projection;
+	Projection.InitPersProjTransform(gPersProjInfo);
 
-	//world transformation matrix.
-	Matrix4f World = Translation * Rotation;
-	//camera position at the origin 
-	Vector3f CameraPos(0.0f, 0.0f, -1.0f);
-	Vector3f U(1.0f, 0.0f, 0.0f);
-	Vector3f V(0.0f, 1.0f, 0.0f);
-	Vector3f N(0.0f, 0.0f, 1.0f);
-	// camera matrix
-	Matrix4f Camera(U.x, U.y, U.z, -CameraPos.x,
-					V.x, V.y, V.z, -CameraPos.y,
-					N.x, N.y, N.z, -CameraPos.z,
-					0.0f, 0.0f, 0.0f, 1.0f);
-
-	//projection matrix
-	float FOV = 90.0f;
-	float tanHalfFOV = tanf(ToRadian(FOV / 2.0f));// make sure we change the degrees to radian.
-	float d = 1 / tanHalfFOV;//calculate the distance.
-
-	float ar = (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT;
-	float NearZ = 1.0f;
-	float FarZ = 10.0f;
-	float zRange = NearZ - FarZ;
-	float A = (-FarZ - NearZ) / zRange;
-	float B = 2.0f * FarZ * NearZ / zRange;
-
-
-	Matrix4f Projection(d/ar, 0.0f, 0.0f, 0.0f,
-						0.0f, d, 0.0f, 0.0f,
-						0.0f, 0.0f, A, B,
-						0.0f, 0.0f, 1.0f, 0.0f);
-
-	//we create the WVP Matrix 
-	Matrix4f WVP = Projection * Camera * World;
-
-
-	//calculating the final matrix.
-	//Matrix4f FinalMatrix = Projection * Translation * Rotation;
-	//sending the matrix into the shader as a uniform.
-	glUniformMatrix4fv(gWorldLocation, 1, GL_TRUE, &WVP.m[0][0]);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-
-	// position
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
-
-	// color
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-
-	glutPostRedisplay();
-
-	glutSwapBuffers();
+	Matrix4f WVP = Projection * View * World;
 
 }
 
