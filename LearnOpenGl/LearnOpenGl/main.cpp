@@ -10,7 +10,7 @@
 
 GLuint VBO;
 GLuint IBO;
-GLuint gWorldLocation;
+GLuint gWVPLocation;
 WorldTrans CubeWorldTransform;//transform matrix object.
 Camera GameCamera;
 
@@ -22,6 +22,19 @@ PersProjInfo gPersProjInfo = {FOV,WINDOW_WIDTH,WINDOW_HEIGHT,zNear,zFar};
 
 const char* VsFileName = "shader.vs";
 const char* FsFileName = "Shader.fs";
+
+//adding keyboard callback
+static void KeyboardCB(unsigned char key, int mouse_x, int mouse_y)
+{
+	GameCamera.OnKeyboard(key);
+
+}
+static void SpecialKeyboardCB(int key, int mouse_x, int mouse_y)
+{
+	GameCamera.OnKeyboard(key);
+
+}
+
 
 //adding a vertex struct
 struct Vertex
@@ -159,6 +172,27 @@ static void RenderSceneCB()
 
 	Matrix4f WVP = Projection * View * World;
 
+	glUniformMatrix4fv(gWVPLocation, 1, GL_TRUE, &WVP.m[0][0]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
+	// position
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+
+	// color
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+
+	glutPostRedisplay();
+
+	glutSwapBuffers();
 }
 
 
@@ -210,9 +244,9 @@ static void CompileShaders()
 	//make sure we assign the get uniform is after the linking of the program.
 	//make sure to query for the uniform location once for every unifiorm in the shader then store it somewhere.
 	//make sure that the uniform is being used or not the compiler will give error. 
-	gWorldLocation = glGetUniformLocation(ShaderProgram, "gWorld");
+	gWVPLocation = glGetUniformLocation(ShaderProgram, "gWorld");
 	//error checking for gScaleLocation.
-	if (gWorldLocation == -1)
+	if (gWVPLocation == -1)
 	{
 		printf("Error getting uniformlocation. of 'gWorld' \n ");
 		exit(1);
@@ -282,7 +316,8 @@ int main(int argc, char* argv[])
 	//register a render callback function.
 	//main entrypoint of the application.
 	glutDisplayFunc(RenderSceneCB);
-
+	glutKeyboardFunc(KeyboardCB);//handle numbers and letters 
+	glutSpecialFunc(SpecialKeyboardCB);//special keys, page up and page down.
 
 	glutMainLoop();
 

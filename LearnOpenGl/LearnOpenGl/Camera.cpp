@@ -72,5 +72,8 @@ void Camera::OnKeyboard(unsigned char Key)
 
 Matrix4f Camera::GetMatrix()
 {
-    return Matrix4f();
+    Matrix4f CameraTransformation;
+    CameraTransformation.InitCameraTransform(m_pos, m_target, m_up);
+
+    return CameraTransformation;
 }
